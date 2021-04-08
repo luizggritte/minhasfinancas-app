@@ -2,60 +2,70 @@ import React from "react";
 
 import { withRouter } from "react-router-dom";
 
-import { AuthContext } from "../main/provedorAutenticacao";
-
 import UsuarioService from "../app/service/usuarioService";
 
 import Card from "../components/card";
 import FormGroup from "../components/formGroup";
-import { mensagemErro } from "../components/toastr";
+import { mensagemSucesso, mensagemErro } from "../components/toastr";
 
-class Login extends React.Component {
+class CadastroUsuario extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
+            nome: "",
             email: "",
             senha: "",
-        }
+            confirmarSenha: "",
+        };
 
         this.service = new UsuarioService();
     }
 
     handleChange = input => event => this.setState({ [input]: event.target.value });
 
-    entrar = () => {
-        const { email, senha } = this.state;
+    salvar = () => {
+        const { nome, email, senha, confirmarSenha } = this.state;
 
-        const erros = [];
+        const usuario = { nome, email, senha, confirmarSenha };
 
-        if (!email) erros.push("Preencha seu Email");
-        else if (!email.match(/^[a-z0-9.]+@[a-z0-9.]+\.[a-z]/)) erros.push("Informe um Email válido");
-        if (!senha) erros.push("Preencha sua Senha");
+        try { this.service.validar(usuario) }
+        catch (erro) {
+            const mensagens = erro.mensagens;
 
-        if (erros && erros.length > 0) return erros.forEach(mensagem => mensagemErro(mensagem));
+            return mensagens.forEach(mensagem => mensagemErro(mensagem));
+        }
 
-        this.service.autenticar({ email, senha })
-            .then(response => {
-                this.context.iniciarSessao(response.data);
+        this.service.salvar(usuario)
+            .then(() => {
+                mensagemSucesso("Usuário cadastrado com sucesso!");
 
-                this.props.history.push("/home");
+                this.props.history.push("/login");
             })
             .catch(err => mensagemErro(err.response.data));
-    }
+    };
 
-    irParaCadastrar = () => this.props.history.push("/cadastro-usuarios");
+    cancelar = () => this.props.history.push("/login");
 
     render() {
         return (
             <div className="row">
                 <div className="col-md-6" style={{ position: "relative", left: "300px" }}>
                     <div className="bs-docs-section">
-                        <Card title="Login">
+                        <Card title="Cadastro de Usuário">
                             <div className="row">
                                 <div className="col-lg-12">
                                     <div className="bs-component">
                                         <fieldset>
+                                            <FormGroup label="Nome: *" htmlFor="inputNome">
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    id="inputNome"
+                                                    onChange={this.handleChange("nome")}
+                                                    placeholder="Digite o Nome"
+                                                />
+                                            </FormGroup>
                                             <FormGroup label="Email: *" htmlFor="inputEmail">
                                                 <input
                                                     type="email"
@@ -74,17 +84,27 @@ class Login extends React.Component {
                                                     placeholder="Digite a Senha"
                                                 />
                                             </FormGroup>
+                                            <FormGroup label="Confirmar Senha: *" htmlFor="inputConfirmarSenha">
+                                                <input
+                                                    type="password"
+                                                    className="form-control"
+                                                    id="inputConfirmarSenha"
+                                                    onChange={this.handleChange("confirmarSenha")}
+                                                    placeholder="Repita a Senha"
+                                                />
+                                            </FormGroup>
                                             <button
-                                                onClick={this.entrar}
+                                                onClick={this.salvar}
                                                 className="btn btn-success"
+                                                
                                             >
-                                                <i className="pi pi-sign-in"></i>&ensp;Entrar
+                                                <i className="pi pi-save"></i>&ensp;Cadastrar
                                             </button>
                                             <button
-                                                onClick={this.irParaCadastrar}
-                                                className="btn btn-primary"
+                                                onClick={this.cancelar}
+                                                className="btn btn-danger"
                                             >
-                                                <i className="pi pi-plus"></i>&ensp;Cadastrar
+                                                <i className="pi pi-times"></i>&ensp;Cancelar
                                             </button>
                                         </fieldset>
                                     </div>
@@ -98,6 +118,4 @@ class Login extends React.Component {
     }
 }
 
-Login.contextType = AuthContext;
-
-export default withRouter(Login);
+export default withRouter(CadastroUsuario);
