@@ -10,7 +10,7 @@
     "axios": "^0.21.2",
     "bootswatch": "^4.6.0",
     "classnames": "^2.2.6",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-favicon": "^2.0.1",
     "path": "^0.12.7",
     "primeicons": "^4.1.0",
